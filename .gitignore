@@ -40,3 +40,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/.idea/
+/.kotlin
+/build
+/config.json
+/core/build
+gradle

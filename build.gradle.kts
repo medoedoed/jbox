@@ -1,5 +1,7 @@
 plugins {
     id("java")
+//    id("io.quarkus") version "3.23.0.CR1"
+
 }
 
 group = "ru.medo"
@@ -9,11 +11,13 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-}
+dependencies {}
+
+//tasks.quarkusDev {
+//    workingDirectory = rootProject.layout.projectDirectory.asFile
+//}
 
 tasks.test {
     useJUnitPlatform()
 }
+
