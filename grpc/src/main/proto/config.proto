@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option java_package = "core.grpc";
+option java_multiple_files = true;
+
+package core;
+
+service ConfigService {
+  rpc ListConfigs(Empty) returns (ConfigList);
+  rpc AddConfig(ConfigInput) returns (ConfigResponse);
+  rpc DeleteConfig(ConfigId) returns (Empty);
+}
+
+message Empty {}
+
+message ConfigInput {
+  string name = 1;
+  string jsonPath = 2;
+}
+
+message ConfigResponse {
+  int32 id = 1;
+}
+
+message ConfigId {
+  int32 id = 1;
+}
+
+message Config {
+  int32 id = 1;
+  string name = 2;
+  string jsonPath = 3;
+}
+
+message ConfigList {
+  repeated Config configs = 1;
+}
