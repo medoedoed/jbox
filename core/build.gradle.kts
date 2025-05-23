@@ -10,11 +10,13 @@ application {
     mainClass.set("core.CoreAppKt")
 }
 
+val binaryName = "core"
+
 graalvmNative {
     binaries {
         named("main") {
             resources.autodetect()
-            imageName.set("core")
+            imageName.set(binaryName)
             mainClass.set("core.CoreAppKt")
             buildArgs.add("--no-fallback")
             buildArgs.add("--initialize-at-build-time=org.slf4j")
@@ -23,6 +25,21 @@ graalvmNative {
     }
 }
 
+tasks.named("nativeCompile") {
+    finalizedBy("installCoreBinary")
+}
+
+tasks.register("installCoreBinary") {
+    dependsOn("nativeCompile")
+    doLast {
+        val outputBinary = file("build/native/nativeCompile/$binaryName")
+        val targetBinary = File(System.getProperty("user.home"), ".jbox/bin/$binaryName")
+        println("Copying core binary to $targetBinary")
+        targetBinary.parentFile.mkdirs()
+        outputBinary.copyTo(targetBinary, overwrite = true)
+        targetBinary.setExecutable(true)
+    }
+}
 
 
 

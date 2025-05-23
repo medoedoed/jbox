@@ -20,6 +20,32 @@ graalvmNative {
     }
 }
 
+tasks.named("nativeCompile") {
+    finalizedBy("installCliBinary")
+}
+
+val isWindows = System.getProperty("os.name").contains("win")
+
+tasks.register("installCliBinary") {
+    dependsOn("nativeCompile")
+    doLast {
+        val outputBinary = file("build/native/nativeCompile/jbox") // от graalvm
+        val target = if (isWindows)
+            File(System.getenv("ProgramFiles") ?: "C:\\Program Files", "jbox.exe")
+        else
+            File("/usr/local/bin/jbox")
+
+        println("Copying CLI binary to $target (may need sudo)")
+        if (!isWindows) {
+            exec {
+                commandLine("sudo", "cp", outputBinary.absolutePath, target.absolutePath)
+            }
+        } else {
+            outputBinary.copyTo(target, overwrite = true)
+        }
+    }
+}
+
 tasks {
     shadowJar {
         archiveFileName.set("jbox.jar")
