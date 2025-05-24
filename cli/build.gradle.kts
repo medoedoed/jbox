@@ -24,27 +24,29 @@ tasks.named("nativeCompile") {
     finalizedBy("installCliBinary")
 }
 
-val isWindows = System.getProperty("os.name").contains("win")
+val isWindows = System.getProperty("os.name").contains("win", ignoreCase = true)
+
+val installDir = if (isWindows) {
+    File(System.getenv("USERPROFILE"), "AppData/Local/jbox/bin")
+} else {
+    File(System.getProperty("user.home"), ".local/bin")
+}
 
 tasks.register("installCliBinary") {
     dependsOn("nativeCompile")
     doLast {
-        val outputBinary = file("build/native/nativeCompile/jbox") // от graalvm
-        val target = if (isWindows)
-            File(System.getenv("ProgramFiles") ?: "C:\\Program Files", "jbox.exe")
-        else
-            File("/usr/local/bin/jbox")
+        val outputBinary = file("build/native/nativeCompile/jbox" + if (isWindows) ".exe" else "")
+        val target = File(installDir, if (isWindows) "jbox.exe" else "jbox")
 
-        println("Copying CLI binary to $target (may need sudo)")
-        if (!isWindows) {
-            exec {
-                commandLine("sudo", "cp", outputBinary.absolutePath, target.absolutePath)
-            }
-        } else {
-            outputBinary.copyTo(target, overwrite = true)
-        }
+        installDir.mkdirs()
+        outputBinary.copyTo(target, overwrite = true)
+        target.setExecutable(true)
+
+        println("Copied CLI binary to: ${target.absolutePath}")
+        println("Make sure ${installDir.absolutePath} is in your PATH")
     }
 }
+
 
 tasks {
     shadowJar {

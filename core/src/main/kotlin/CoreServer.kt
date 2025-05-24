@@ -1,7 +1,7 @@
 package core
 
 import core.data.CoreConfig
-import core.db.repository.ConfigRepository
+import core.db.repository.ConnectionConfigRepository
 import core.service.ConfigService
 import io.grpc.Server
 import io.grpc.ServerBuilder
@@ -11,7 +11,7 @@ import org.koin.core.component.inject
 
 class CoreServer() : KoinComponent {
     private val config: CoreConfig by inject()
-    private val repository: ConfigRepository by inject()
+    private val repository: ConnectionConfigRepository by inject()
     private val port = config.grpc.port
 
     private val server: Server = ServerBuilder

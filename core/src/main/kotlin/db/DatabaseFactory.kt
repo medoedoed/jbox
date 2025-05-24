@@ -1,6 +1,5 @@
 package core.db
 
-import core.db.entity.Config
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -13,7 +12,7 @@ object DatabaseFactory {
 
         transaction(db) {
             addLogger(StdOutSqlLogger)
-            SchemaUtils.create(core.db.entity.Config)
+            SchemaUtils.create(core.db.entity.ConnectionConfig)
         }
         return db
     }
