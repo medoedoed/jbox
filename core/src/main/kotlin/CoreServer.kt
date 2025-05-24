@@ -1,23 +1,24 @@
 package core
 
-import core.data.CoreConfig
+import config.CoreSettings
+import config.data.AppConfig
 import core.db.repository.ConnectionConfigRepository
-import core.service.ConfigService
+import core.service.ConnectionConfigService
 import io.grpc.Server
 import io.grpc.ServerBuilder
 import io.grpc.protobuf.services.ProtoReflectionService
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class CoreServer() : KoinComponent {
-    private val config: CoreConfig by inject()
+class CoreServer : KoinComponent {
     private val repository: ConnectionConfigRepository by inject()
+    private val config: AppConfig by inject()
     private val port = config.grpc.port
 
     private val server: Server = ServerBuilder
         .forPort(port)
-        .addService(ConfigService(repository))
-        .addService(ProtoReflectionService.newInstance())
+        .addService(ConnectionConfigService(repository))
+        .addService(ProtoReflectionService.newInstance()) // temp for testing via grpcurl
         .build()
 
     fun start() {

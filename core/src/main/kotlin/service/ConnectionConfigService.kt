@@ -3,7 +3,7 @@ package core.service
 import core.db.repository.ConnectionConfigRepository
 import core.grpc.*
 
-class ConfigService(private val repository: ConnectionConfigRepository)
+class ConnectionConfigService(private val repository: ConnectionConfigRepository)
     : ConfigServiceGrpcKt.ConfigServiceCoroutineImplBase() {
     override suspend fun listConfigs(request: Empty): ConfigList {
         val configs = repository.getAll()

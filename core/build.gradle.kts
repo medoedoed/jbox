@@ -3,7 +3,6 @@ plugins {
     kotlin("jvm") version "2.1.20"
     id("org.graalvm.buildtools.native") version "0.9.28"
     id("application")
-
 }
 
 application {
@@ -77,11 +76,10 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
     implementation("io.insert-koin:koin-core:4.0.4")
 
-    implementation("com.typesafe:config:1.4.2")
 //    implementation("io.github.config4k:config4k:0.7.0")
     runtimeOnly("org.slf4j:slf4j-simple:2.0.9")
 
-
+    implementation(project(":config"))
     implementation(project(":grpc"))
 //    testImplementation(platform("org.junit:junit-bom:5.10.0"))
 //    testImplementation("org.junit.jupiter:junit-jupiter")

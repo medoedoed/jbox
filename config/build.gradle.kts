@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
+    kotlin("plugin.serialization") version "2.1.0"
 }
 
 group = "ru.medo"
@@ -10,6 +11,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("com.typesafe:config:1.4.2")
 }
 
