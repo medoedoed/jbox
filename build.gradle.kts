@@ -1,6 +1,7 @@
+import java.io.*
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
+import java.util.zip.GZIPInputStream
+import java.util.zip.ZipInputStream
 
 plugins {
     id("java")
@@ -15,52 +16,80 @@ repositories {
 
 dependencies {}
 
-val jboxHomeBin = File(System.getProperty("user.home"), ".jbox/bin")
-val os = if (System.getProperty("os.name").contains("win")) "windows" else "linux"
+val jBoxHomeBin = File(System.getProperty("user.home"), ".jbox/bin")
+val os = if (System.getProperty("os.name").lowercase().contains("win")) "windows" else "linux"
 
-val arch = when {
-    System.getProperty("os.arch").contains("64") -> "amd64"
-    System.getProperty("os.arch").contains("aarch64") -> "arm64"
-    else -> throw GradleException("Unsupported architecture")
+val singBoxUrl = if (os == "windows") {
+    "https://github.com/SagerNet/sing-box/releases/download/v1.11.11/sing-box-1.11.11-windows-amd64.zip"
+} else {
+    "https://github.com/SagerNet/sing-box/releases/download/v1.11.11/sing-box-1.11.11-linux-amd64.tar.gz"
 }
-
-val singBoxVersion = "1.11.11"
-val singBoxUrl = "https://github.com/SagerNet/sing-box/releases/download/v$singBoxVersion/sing-box-$singBoxVersion-$os-$arch.tar.gz"
-
-val singBoxPath = jboxHomeBin.resolve("sing-box")
-val singBoxTar = jboxHomeBin.resolve("sing-box.tar.gz")
 
 tasks.register("downloadSingBox") {
-    outputs.file(singBoxPath)
     doLast {
-        if (!jboxHomeBin.exists()) jboxHomeBin.mkdirs()
-        if (!singBoxPath.exists()) {
-            println("Downloading sing-box from $singBoxUrl")
-            URL(singBoxUrl).openStream().use { input ->
-                Files.copy(input, singBoxTar.toPath(), StandardCopyOption.REPLACE_EXISTING)
-            }
-            println("Extracting...")
-            exec {
-                workingDir = jboxHomeBin
-                commandLine("tar", "-xzf", singBoxTar.name)
-            }
+        jBoxHomeBin.mkdirs()
 
-            val extracted = jboxHomeBin.listFiles()?.firstOrNull { it.name.startsWith("sing-box") && it.canExecute() }
-                ?: throw GradleException("sing-box binary not found after extraction")
-            extracted.renameTo(singBoxPath)
-            singBoxPath.setExecutable(true)
-            singBoxTar.delete()
-        } else {
-            println("sing-box already exists at $singBoxPath")
+        val tempFile = File.createTempFile("sing-box", if (os == "windows") ".zip" else ".tar.gz")
+        tempFile.outputStream().use { out ->
+            URL(singBoxUrl).openStream().use { input ->
+                input.copyTo(out)
+            }
         }
+
+        if (os == "windows") {
+            ZipInputStream(tempFile.inputStream()).use { zip ->
+                var entry = zip.nextEntry
+                while (entry != null) {
+                    if (!entry.isDirectory && entry.name.endsWith("sing-box.exe")) {
+                        val targetFile = File(jBoxHomeBin, "sing-box.exe")
+                        targetFile.outputStream().use { zip.copyTo(it) }
+                        targetFile.setExecutable(true)
+                        break
+                    }
+                    entry = zip.nextEntry
+                }
+            }
+        } else {
+            GZIPInputStream(tempFile.inputStream()).use { gzip ->
+                val input = BufferedInputStream(gzip)
+
+                while (true) {
+                    val header = ByteArray(512)
+                    if (input.read(header) != 512) break
+
+                    val name = header.takeWhile { it != 0.toByte() }.toByteArray().toString(Charsets.US_ASCII).trim('\u0000')
+                    if (name.isEmpty()) break
+
+                    val sizeOctal = header.copyOfRange(124, 136)
+                        .toString(Charsets.US_ASCII)
+                        .trim().removeSuffix("\u0000")
+                    val size = sizeOctal.toLongOrNull(8) ?: break
+
+                    if (name.endsWith("/sing-box")) {
+                        val outputFile = File(jBoxHomeBin, "sing-box")
+                        outputFile.outputStream().use { out ->
+                            var remaining = size
+                            val buffer = ByteArray(8192)
+                            while (remaining > 0) {
+                                val read = input.read(buffer, 0, minOf(buffer.size.toLong(), remaining).toInt())
+                                if (read == -1) break
+                                out.write(buffer, 0, read)
+                                remaining -= read
+                            }
+                        }
+                        File(jBoxHomeBin, "sing-box").setExecutable(true)
+                        break
+                    } else {
+                        // Пропустить текущий файл
+                        var skip = size
+                        if (skip % 512 != 0L) skip += 512 - (skip % 512)
+                        input.skip(skip)
+                    }
+                }
+            }
+        }
+
+        tempFile.delete()
+        println("sing-box downloaded to: ${jBoxHomeBin.absolutePath}")
     }
 }
-
-tasks.named("build") {
-    dependsOn(":downloadSingBox", ":core:nativeCompile", ":cli:nativeCompile")
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
