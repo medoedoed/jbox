@@ -30,7 +30,11 @@ fun loadAppConfig(path: Path): AppConfig {
         throw IllegalArgumentException("Config must be a JSON object")
     }
 
-    val defaultJsonElement = Json.encodeToJsonElement(defaultConfig) as JsonObject
+    val defaultJsonElement = Json {
+        encodeDefaults = true
+        ignoreUnknownKeys = false
+    }.encodeToJsonElement(defaultConfig) as JsonObject
+
     val mergedJson = mergeJsonObjects(defaultJsonElement, userJsonElement)
 
     return try {
@@ -42,7 +46,21 @@ fun loadAppConfig(path: Path): AppConfig {
 
 fun saveAppConfig(path: Path, config: AppConfig) {
     Files.createDirectories(path.parent)
-    Files.writeString(path, Json.encodeToString(AppConfig.serializer(), config))
+
+    val json = Json {
+        prettyPrint = true
+        encodeDefaults = true
+        ignoreUnknownKeys = false
+    }
+
+    Files.writeString(path, json.encodeToString(AppConfig.serializer(), config))
+}
+fun provideAppConfig(settings: CoreSettings): AppConfig {
+    val path = Path.of(settings.app.appConfig)
+    if (!Files.exists(path)) {
+        saveAppConfig(path, defaultAppConfig())
+    }
+    return loadAppConfig(path)
 }
 
 private fun mergeJsonObjects(default: JsonObject, user: JsonObject): JsonObject {

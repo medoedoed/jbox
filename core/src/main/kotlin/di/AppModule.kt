@@ -9,7 +9,8 @@ import core.db.repository.ConnectionConfigRepository
 import org.koin.dsl.module
 import java.nio.file.Path
 import config.loadAppConfig
-import core.util.provideAppConfig
+import config.provideAppConfig
+import core.CoreServer
 
 val appModule = module {
     single<CoreSettings> { loadSettings() }
@@ -17,5 +18,6 @@ val appModule = module {
     single { DatabaseFactory.init(get<CoreSettings>().database.path) }
     single { ConfigDao() }
     single { ConnectionConfigRepository(get()) }
+    single { CoreServer(get(), get()) }
 
 }
