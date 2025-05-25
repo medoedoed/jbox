@@ -1,4 +1,4 @@
-package core.db.entity
+package core.database.entity
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 

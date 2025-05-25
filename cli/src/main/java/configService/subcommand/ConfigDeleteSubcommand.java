@@ -1,24 +1,29 @@
 package configService.subcommand;
 
+import com.google.inject.Inject;
 import core.grpc.ConfigId;
-import core.grpc.ConfigServiceGrpc;
+import core.grpc.ConnectionConfigServiceGrpc;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import picocli.CommandLine;
+
 
 @CommandLine.Command(name = "delete", description = "Удалить конфиг")
 public class ConfigDeleteSubcommand implements Runnable {
+    private final ConnectionConfigServiceGrpc.ConnectionConfigServiceBlockingStub stub;
+    private final ManagedChannel channel;
+
+    @Inject
+    public ConfigDeleteSubcommand(ConnectionConfigServiceGrpc.ConnectionConfigServiceBlockingStub stub,
+                               ManagedChannel channel) {
+        this.stub = stub;
+        this.channel = channel;
+    }
+
     @CommandLine.Parameters(index = "0", description = "ID конфига")
     private int id;
 
     @Override
     public void run() {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 48313)
-                .usePlaintext()
-                .build();
-
-        var stub = ConfigServiceGrpc.newBlockingStub(channel);
-
         var request = ConfigId.newBuilder()
                 .setId(id)
                 .build();

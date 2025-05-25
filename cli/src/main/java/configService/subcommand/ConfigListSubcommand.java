@@ -1,21 +1,28 @@
 package configService.subcommand;
 
+import com.google.inject.Inject;
 import core.grpc.ConfigList;
-import core.grpc.ConfigServiceGrpc;
+import core.grpc.ConnectionConfigServiceGrpc;
 import core.grpc.Empty;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import picocli.CommandLine;
+
 
 @CommandLine.Command(name = "list", description = "config list")
 public class ConfigListSubcommand implements Runnable {
+    private final ConnectionConfigServiceGrpc.ConnectionConfigServiceBlockingStub stub;
+    private final ManagedChannel channel;
+    @Inject
+    public ConfigListSubcommand(ConnectionConfigServiceGrpc.ConnectionConfigServiceBlockingStub stub,
+                                  ManagedChannel channel) {
+        this.stub = stub;
+        this.channel = channel;
+    }
+
+
     @Override
     public void run() {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 48313)
-                .usePlaintext()
-                .build();
 
-        ConfigServiceGrpc.ConfigServiceBlockingStub stub = ConfigServiceGrpc.newBlockingStub(channel);
 
         Empty request = Empty.newBuilder().build();
         ConfigList response = stub.listConfigs(request);

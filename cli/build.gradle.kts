@@ -6,7 +6,7 @@ plugins {
 }
 
 application {
-    mainClass.set("JBoxApplication")
+    mainClass.set("cli.JBoxApplication")
 }
 
 graalvmNative {
@@ -14,8 +14,10 @@ graalvmNative {
         named("main") {
             resources.autodetect()
             imageName.set("jbox")
-            mainClass.set("JBoxApplication")
+            mainClass.set("cli.JBoxApplication")
             buildArgs.add("--no-fallback")
+            buildArgs.add("--initialize-at-build-time=kotlin.DeprecationLevel")
+            buildArgs.add("--initialize-at-build-time=org.slf4j")
         }
     }
 }
@@ -65,18 +67,25 @@ java {
 
 val grpcVersion = "1.70.0"
 val picoliVersion = "4.7.6"
+val daggerVersion = "2.52"
 
 dependencies {
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-netty-shaded:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
 
+    implementation("com.google.inject:guice:7.0.0")
+
     implementation("info.picocli:picocli:$picoliVersion")
     implementation("info.picocli:picocli-codegen:$picoliVersion")
 
+    implementation("ch.qos.logback:logback-classic:1.5.16")
+
     implementation("com.typesafe:config:1.4.2")
+    implementation("org.zeroturnaround:zt-exec:1.12")
 
     implementation(project(":grpc"))
+    implementation(project(":config"))
 }
 
 repositories {

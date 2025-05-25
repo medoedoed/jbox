@@ -10,6 +10,11 @@ import kotlinx.serialization.json.encodeToJsonElement
 import java.nio.file.Files
 import java.nio.file.Path
 
+private val defaultJson = Json {
+    encodeDefaults = true
+    ignoreUnknownKeys = false
+}
+
 fun loadAppConfig(path: Path): AppConfig {
     val defaultConfig = defaultAppConfig()
 
@@ -30,10 +35,7 @@ fun loadAppConfig(path: Path): AppConfig {
         throw IllegalArgumentException("Config must be a JSON object")
     }
 
-    val defaultJsonElement = Json {
-        encodeDefaults = true
-        ignoreUnknownKeys = false
-    }.encodeToJsonElement(defaultConfig) as JsonObject
+    val defaultJsonElement = defaultJson.encodeToJsonElement(defaultConfig) as JsonObject
 
     val mergedJson = mergeJsonObjects(defaultJsonElement, userJsonElement)
 

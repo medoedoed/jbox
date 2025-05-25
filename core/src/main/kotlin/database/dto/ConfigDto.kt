@@ -1,4 +1,4 @@
-package core.db.dto
+package core.database.dto
 
 data class ConfigDto(
     val id: Int,

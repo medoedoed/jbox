@@ -1,7 +1,7 @@
-package core.db.dao
+package core.database.dao
 
-import core.db.entity.ConnectionConfig
-import core.db.dto.ConfigDto
+import core.database.entity.ConnectionConfig
+import core.database.dto.ConfigDto
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert

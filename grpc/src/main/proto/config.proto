@@ -3,17 +3,26 @@ syntax = "proto3";
 option java_package = "core.grpc";
 option java_multiple_files = true;
 
-package core;
+package core.config;
 
-service ConfigService {
+service ConnectionConfigService {
   rpc ListConfigs(Empty) returns (ConfigList);
-  rpc AddConfig(ConfigInput) returns (ConfigResponse);
+  rpc AddConfigFromUri(ConfigUriInput) returns (ConfigResponse);
+  rpc AddConfigFromJson(ConfigJsonInput) returns (ConfigResponse);
   rpc DeleteConfig(ConfigId) returns (Empty);
+  rpc GetActiveConfig(Empty) returns (ActiveConfigResponse);
+  rpc SetActiveConfig(ConfigId) returns (Empty);
+  rpc RenameConfig(RenameConfigRequest) returns (Empty);
 }
 
 message Empty {}
 
-message ConfigInput {
+message ConfigUriInput {
+  string name = 1;
+  string uri = 2;
+}
+
+message ConfigJsonInput {
   string name = 1;
   string jsonPath = 2;
 }
@@ -34,4 +43,13 @@ message Config {
 
 message ConfigList {
   repeated Config configs = 1;
+}
+
+message ActiveConfigResponse {
+  Config config = 1;
+}
+
+message RenameConfigRequest {
+  int32 id = 1;
+  string newName = 2;
 }

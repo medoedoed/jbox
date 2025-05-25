@@ -1,43 +1,52 @@
 package util;
 
-import com.typesafe.config.ConfigFactory;
 
-import java.io.File;
+import com.google.inject.Inject;
+import config.CoreSettings;
+import org.zeroturnaround.exec.ProcessExecutor;
+
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 public class CoreLoader {
-    private static final File CORE_BINARY = resolveBinaryPath();
-    private static final Path PID_FILE = CORE_BINARY.toPath().getParent().resolve("pid");
+    private final Path CORE_BINARY;
+    private final Path PID_FILE;
+    private final CoreSettings settings;
 
-    public static void start() {
-        if (!CORE_BINARY.exists()) throw new RuntimeException("Core binary not found: " + CORE_BINARY);
+    @Inject
+    public CoreLoader(CoreSettings coreSettings) {
+        this.settings = coreSettings;
+        this.CORE_BINARY = resolveBinaryPath();
+        this.PID_FILE = CORE_BINARY.getParent().resolve("pid");
+    }
+
+    public void start() {
+        if (!Files.exists(CORE_BINARY)) throw new RuntimeException("Core binary not found: " + CORE_BINARY);
         if (isRunning()) throw new RuntimeException("Core is already running.");
 
         try {
-            ProcessBuilder builder = isWindows()
-                    ? new ProcessBuilder("cmd", "/c", "start", "\"\"", CORE_BINARY.getAbsolutePath())
-                    : new ProcessBuilder("nohup", CORE_BINARY.getAbsolutePath());
+            Process process = new ProcessExecutor()
+                    .command(CORE_BINARY.toString())
+                    .directory(CORE_BINARY.getParent().toFile())
+                    .start()
+                    .getProcess();
 
-            builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-            builder.redirectError(ProcessBuilder.Redirect.DISCARD);
-            builder.directory(CORE_BINARY.getParentFile());
-
-            Process process = builder.start();
-
-            long pid = isWindows() ? ProcessHandle.current().pid() : process.pid();
+            long pid = process.pid();
             Files.createDirectories(PID_FILE.getParent());
             Files.writeString(PID_FILE, Long.toString(pid), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-            System.out.println("Core daemon started.");
+            System.out.println("Core daemon started with PID " + pid);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to start core daemon", e);
+            throw new RuntimeException("Failed to start core", e);
         }
     }
 
-    public static void stop() {
+    public void stop() {
         Optional<Long> pidOpt = readPid();
         if (pidOpt.isEmpty()) {
             System.out.println("Core is not running.");
@@ -52,57 +61,59 @@ public class CoreLoader {
         }
 
         try {
-            ProcessBuilder builder = isWindows()
-                    ? new ProcessBuilder("taskkill", "/PID", Long.toString(pid), "/F")
-                    : new ProcessBuilder("kill", Long.toString(pid));
+            boolean success = isWindows()
+                    ? new ProcessExecutor().command("taskkill", "/PID", String.valueOf(pid), "/F").execute().getExitValue() == 0
+                    : new ProcessExecutor().command("kill", String.valueOf(pid)).execute().getExitValue() == 0;
 
-            Process kill = builder.start();
-            kill.waitFor();
-
-            if (kill.exitValue() == 0) {
+            if (success) {
                 cleanupPid();
-                System.out.println("Core daemon stopped.");
+                System.out.println("Core stopped.");
             } else {
-                System.out.println("Failed to stop core daemon.");
+                System.out.println("Failed to stop core.");
             }
 
-        } catch (Exception e) {
-            throw new RuntimeException("Error stopping daemon", e);
+        } catch (IOException | InterruptedException | TimeoutException e) {
+            throw new RuntimeException("Failed to stop process", e);
         }
     }
 
-    public static boolean isRunning() {
+    public boolean isRunning() {
         return readPid().filter(CoreLoader::isProcessAlive).isPresent();
     }
 
     // ===== Helpers =====
 
-    private static File resolveBinaryPath() {
-        String path = ConfigFactory.load().getString("cli.core.binary-path");
-        if (isWindows() && !path.toLowerCase().endsWith(".exe")) path += ".exe";
-        return new File(path).getAbsoluteFile();
+    private Path resolveBinaryPath() {
+        var basePath = Path.of(settings.getApp().getDirectory(), "bin", "sing-box");
+
+        if (isWindows() && !basePath.toString().toLowerCase().endsWith(".exe")) {
+            basePath = Path.of(basePath + ".exe");
+        }
+
+        return basePath.toAbsolutePath();
     }
 
-    private static Optional<Long> readPid() {
-        if (!Files.exists(PID_FILE)) return Optional.empty();
+    private Optional<Long> readPid() {
         try {
+            if (!Files.exists(PID_FILE)) return Optional.empty();
             return Optional.of(Long.parseLong(Files.readString(PID_FILE).trim()));
         } catch (Exception e) {
             return Optional.empty();
         }
     }
 
-    private static void cleanupPid() {
+    private void cleanupPid() {
         try {
             Files.deleteIfExists(PID_FILE);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     private static boolean isProcessAlive(long pid) {
         return ProcessHandle.of(pid).map(ProcessHandle::isAlive).orElse(false);
     }
 
-    private static boolean isWindows() {
+    private boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("win");
     }
 }
