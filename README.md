@@ -25,6 +25,11 @@ JBox is a native command-line wrapper for [sing-box](https://github.com/SagerNet
 
 ## Build from source
 
-```angular2html
-sudo ./gradlew build
+Requirements:
+- GraalVM with `native-image` installed (Java 17+)
+- `JAVA_HOME` set to GraalVM
+- On Linux: `build-essential`, `zlib1g-dev`, `libffi-dev` installed
+
+```shell
+./gradlew build
 ```
