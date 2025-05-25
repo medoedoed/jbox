@@ -1,6 +1,5 @@
 package core.util
 
-import config.CoreSettings
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File

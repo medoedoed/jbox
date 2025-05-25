@@ -1,4 +1,4 @@
-package config;
+package logs;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -9,6 +9,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import config.CoreSettings;
 import config.data.AppConfig;
 import di.ConfigModule;
 import org.slf4j.LoggerFactory;
@@ -16,27 +17,28 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 public class LogbackConfig {
-    private static final String pattern = "%d{HH:mm:ss} %-5level %logger{36} - %msg%n";
+
+    private static final String PATTERN = "%d{HH:mm:ss} %-5level %logger{36} - %msg%n";
 
     public static void configureLogging() {
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 
-        PatternLayoutEncoder consoleEncoder = new PatternLayoutEncoder();
+        var consoleEncoder = new PatternLayoutEncoder();
         consoleEncoder.setContext(context);
-        consoleEncoder.setPattern(pattern);
+        consoleEncoder.setPattern(PATTERN);
         consoleEncoder.start();
 
-        ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
+        var consoleAppender = new ConsoleAppender<ILoggingEvent>();
         consoleAppender.setContext(context);
         consoleAppender.setEncoder(consoleEncoder);
         consoleAppender.start();
 
-        PatternLayoutEncoder fileEncoder = new PatternLayoutEncoder();
+        var fileEncoder = new PatternLayoutEncoder();
         fileEncoder.setContext(context);
-        fileEncoder.setPattern(pattern);
+        fileEncoder.setPattern(PATTERN);
         fileEncoder.start();
 
-        FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
+        var fileAppender = new FileAppender<ILoggingEvent>();
         fileAppender.setContext(context);
         fileAppender.setEncoder(fileEncoder);
 
@@ -44,14 +46,18 @@ public class LogbackConfig {
         var appConfig = injector.getProvider(AppConfig.class).get();
         var settings = injector.getProvider(CoreSettings.class).get();
 
-        var configPath = appConfig.getLogging().getCli().getFile();
-        var appPath = settings.getApp().getDirectory();
+        String configPath = appConfig.getLogging().getCli().getFile();
+        String appPath = settings.getApp().getDirectory();
 
         fileAppender.setFile(appPath + File.separator + configPath);
         fileAppender.start();
 
         Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-        rootLogger.setLevel(Level.DEBUG);
+        rootLogger.detachAndStopAllAppenders();
+
+        String logLevelString = appConfig.getLogging().getCli().getLevel();
+        Level level = Level.toLevel(logLevelString.toUpperCase(), Level.INFO);
+        rootLogger.setLevel(level);
 
         rootLogger.addAppender(consoleAppender);
         rootLogger.addAppender(fileAppender);

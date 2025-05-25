@@ -3,6 +3,8 @@ package util;
 
 import com.google.inject.Inject;
 import config.CoreSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 public class CoreLoader {
+    private static final Logger logger = LoggerFactory.getLogger(CoreLoader.class);
     private final Path CORE_BINARY;
     private final Path PID_FILE;
     private final CoreSettings settings;
@@ -39,7 +42,7 @@ public class CoreLoader {
             Files.createDirectories(PID_FILE.getParent());
             Files.writeString(PID_FILE, Long.toString(pid), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-            System.out.println("Core daemon started with PID " + pid);
+            logger.info("Core daemon started with PID {}", pid);
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to start core", e);
@@ -49,14 +52,14 @@ public class CoreLoader {
     public void stop() {
         Optional<Long> pidOpt = readPid();
         if (pidOpt.isEmpty()) {
-            System.out.println("Core is not running.");
+            logger.info("Core stopped");
             return;
         }
 
         long pid = pidOpt.get();
         if (!isProcessAlive(pid)) {
             cleanupPid();
-            System.out.println("Stale PID removed.");
+            logger.info("Stale PID removed.");
             return;
         }
 
@@ -67,9 +70,9 @@ public class CoreLoader {
 
             if (success) {
                 cleanupPid();
-                System.out.println("Core stopped.");
+                logger.info("Core stopped.");
             } else {
-                System.out.println("Failed to stop core.");
+                logger.info("Failed to stop core.");
             }
 
         } catch (IOException | InterruptedException | TimeoutException e) {

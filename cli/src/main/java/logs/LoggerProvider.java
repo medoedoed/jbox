@@ -1,4 +1,4 @@
-package config;
+package logs;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

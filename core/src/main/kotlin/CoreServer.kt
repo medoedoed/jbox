@@ -4,7 +4,6 @@ import config.CoreSettings
 import config.data.AppConfig
 import core.database.repository.ConnectionConfigRepository
 import core.service.ConnectionConfigService
-import core.util.UriParser
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.Server
 import io.grpc.ServerBuilder

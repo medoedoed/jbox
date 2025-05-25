@@ -6,7 +6,7 @@ import configService.subcommand.ConfigListSubcommand;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-        name = "config",
+        name = "logs",
         description = "vless config managment",
         subcommands = {
                 ConfigListSubcommand.class,
