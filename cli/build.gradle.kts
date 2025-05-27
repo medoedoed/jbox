@@ -6,7 +6,7 @@ plugins {
 }
 
 application {
-    mainClass.set("cli.JBoxApplication")
+    mainClass.set("JBoxApplication")
 }
 
 graalvmNative {
@@ -14,10 +14,14 @@ graalvmNative {
         named("main") {
             resources.autodetect()
             imageName.set("jbox")
-            mainClass.set("cli.JBoxApplication")
+            mainClass.set("JBoxApplication")
             buildArgs.add("--no-fallback")
             buildArgs.add("--initialize-at-build-time=kotlin.DeprecationLevel")
             buildArgs.add("--initialize-at-build-time=org.slf4j")
+            buildArgs.add("--initialize-at-build-time=ch.qos.logback")
+//            val graalConfigPath = projectDir.resolve("src/main/resources/graal_config.json").absolutePath
+//            buildArgs.add("-H:ReflectionConfigurationFiles=$graalConfigPath")
+
         }
     }
 }
@@ -74,7 +78,10 @@ dependencies {
     implementation("io.grpc:grpc-netty-shaded:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
 
-    implementation("com.google.inject:guice:7.0.0")
+//    implementation("com.google.inject:guice:7.0.0")
+
+    implementation("com.google.dagger:dagger:$daggerVersion")
+    annotationProcessor("com.google.dagger:dagger-compiler:$daggerVersion")
 
     implementation("info.picocli:picocli:$picoliVersion")
     implementation("info.picocli:picocli-codegen:$picoliVersion")

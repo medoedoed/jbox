@@ -1,7 +1,7 @@
 package core.database
 
-import core.database.entity.ActiveConnection
-import core.database.entity.ConnectionConfig
+import core.database.entity.ActiveConnectionTable
+import core.database.entity.ConnectionConfigTable
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -20,7 +20,7 @@ object DatabaseFactory {
         transaction(db) {
             addLogger(StdOutSqlLogger)
             logger.info { "Creating schema if not exists..." }
-            SchemaUtils.create(ConnectionConfig, ActiveConnection)
+            SchemaUtils.create(ConnectionConfigTable, ActiveConnectionTable)
         }
 
         logger.info { "Database initialized successfully" }

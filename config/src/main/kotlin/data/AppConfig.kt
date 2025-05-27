@@ -16,10 +16,10 @@ data class GrpcConfig(val host: String = "127.0.0.1", val port: Int = 3628)
 data class LoggingConfig(val cli: CliConfig, val core: CoreConfig)
 
 @Serializable
-data class CliConfig(val level: String = "info", val file: String = "logs/cli.log")
+data class CliConfig(val level: String = "info", val file: String = "cli.logs/cli.log")
 
 @Serializable
-data class CoreConfig(val level: String = "info", val file: String = "logs/core.log")
+data class CoreConfig(val level: String = "info", val file: String = "cli.logs/core.log")
 
 
 @Serializable

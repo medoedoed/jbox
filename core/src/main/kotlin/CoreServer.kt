@@ -4,6 +4,7 @@ import config.CoreSettings
 import config.data.AppConfig
 import core.database.repository.ConnectionConfigRepository
 import core.service.ConnectionConfigService
+import core.service.PingService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.Server
 import io.grpc.ServerBuilder
@@ -21,6 +22,7 @@ class CoreServer(
     private val server: Server = ServerBuilder
         .forPort(port)
         .addService(connectionConfigService)
+        .addService(PingService())
         .addService(ProtoReflectionService.newInstance()) // temp for testing via grpcurl
         .build()
 

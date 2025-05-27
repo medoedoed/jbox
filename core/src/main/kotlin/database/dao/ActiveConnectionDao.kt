@@ -1,6 +1,6 @@
 package core.database.dao
 
-import core.database.entity.ActiveConnection
+import core.database.entity.ActiveConnectionTable
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -9,14 +9,14 @@ import org.jetbrains.exposed.sql.update
 object ActiveConnectionDao {
     fun setActiveConnection(id: Int) {
         transaction {
-            val row = ActiveConnection.selectAll().limit(1).singleOrNull()
+            val row = ActiveConnectionTable.selectAll().limit(1).singleOrNull()
             if (row == null) {
-                ActiveConnection.insert {
+                ActiveConnectionTable.insert {
                     it[connectionId] = id
                 }
             } else {
-                ActiveConnection.update(
-                    where = { ActiveConnection.connectionId eq row[ActiveConnection.connectionId] }
+                ActiveConnectionTable.update(
+                    where = { ActiveConnectionTable.connectionId eq row[ActiveConnectionTable.connectionId] }
                 ) {
                     it[connectionId] = id
                 }
@@ -26,11 +26,11 @@ object ActiveConnectionDao {
 
     fun getActiveConnection(): Int? {
         return transaction {
-            ActiveConnection
+            ActiveConnectionTable
                 .selectAll()
                 .limit(1)
                 .singleOrNull()
-                ?.get(ActiveConnection.connectionId)
+                ?.get(ActiveConnectionTable.connectionId)
         }
     }
 }

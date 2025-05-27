@@ -1,33 +1,39 @@
 package cli;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import configService.ConfigCommand;
-import di.AppModule;
-import di.ConfigModule;
-import io.grpc.ManagedChannel;
-import logs.LogbackConfig;
+import cli.command.ping.PingCommand;
+import cli.di.*;
+import cli.util.CoreLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
-import util.CoreLoader;
+
+import javax.inject.Inject;
 
 @CommandLine.Command(
         name = "jbox",
         version = "jbox 1.0",
         description = "cli client for sing-box core",
         subcommands = {
-                ConfigCommand.class
-        }
+//                ConfigCommand.class,
+                PingCommand.class
+        },
+        mixinStandardHelpOptions = true
 )
 public class JBoxApplication implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(JBoxApplication.class);
 
+    public CoreLoader coreLoader;
+
+    @Inject
+    public JBoxApplication(CoreLoader coreLoader) {
+        this.coreLoader = coreLoader;
+    }
+
+
+
     @Override
     public void run() {
         try {
-            Injector injector = Guice.createInjector(new ConfigModule());
-            CoreLoader coreLoader = injector.getInstance(CoreLoader.class);
             coreLoader.start();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -37,17 +43,10 @@ public class JBoxApplication implements Runnable {
     }
 
     public static void main(String[] args) {
-        LogbackConfig.configureLogging();
-        Injector injector = Guice.createInjector(new AppModule());
-
-        // Проверка соединения с gRPC сервером
-        var channel = injector.getInstance(ManagedChannel.class);
-
-
-        var app = injector.getInstance(JBoxApplication.class);
-        int exitCode = new CommandLine(app).execute(args);
-
-        channel.shutdown();
+        AppComponent component = DaggerAppComponent.create();
+        component.getLogbackConfig().configureLogging();
+        CommandComponent serviceComponent = DaggerCommandComponent.create();
+        int exitCode = new CommandLine(component.getApp(), new DaggerFactory(serviceComponent)).execute(args);
         System.exit(exitCode);
     }
 

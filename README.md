@@ -19,7 +19,7 @@ JBox is a native command-line wrapper for [sing-box](https://github.com/SagerNet
 | Native Compilation   | [GraalVM Native Image](https://www.graalvm.org)                |
 | Database             | SQLite via [Exposed ORM](https://github.com/JetBrains/Exposed) |
 | gRPC                 | Java gRPC + Kotlin Stubs                                       |
-| Dependency Injection | Koin                                                           |
+| Dependency Injection | Koin (Kotlin), Guice (Java)                                    |
 | Configuration        | Typesafe Config                                                |
 
 

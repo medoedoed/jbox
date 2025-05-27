@@ -59,7 +59,7 @@ repositories {
 
 val grpcVersion = "1.70.0"
 val grpcKotlinVersion = "1.4.1"
-val exposedVersion = "0.60.0"
+val exposedVersion = "0.61.0"
 val kotlinVersion = "2.1.20"
 
 dependencies {
