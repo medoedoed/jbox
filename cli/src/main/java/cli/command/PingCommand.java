@@ -1,4 +1,4 @@
-package cli.command.ping;
+package cli.command;
 
 import cli.service.GrpcPingService;
 import picocli.CommandLine;

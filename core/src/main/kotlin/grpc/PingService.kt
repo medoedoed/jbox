@@ -1,4 +1,4 @@
-package core.service
+package core.grpc
 
 import core.ping.Empty
 import core.ping.PingServiceGrpcKt

@@ -1,7 +1,10 @@
 package cli;
 
-import cli.command.ping.PingCommand;
-import cli.di.*;
+import cli.command.PingCommand;
+import cli.command.config.ConfigCommand;
+import cli.di.AppComponent;
+import cli.di.DaggerAppComponent;
+import cli.di.DaggerFactory;
 import cli.util.CoreLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +17,7 @@ import javax.inject.Inject;
         version = "jbox 1.0",
         description = "cli client for sing-box core",
         subcommands = {
-//                ConfigCommand.class,
+                ConfigCommand.class,
                 PingCommand.class
         },
         mixinStandardHelpOptions = true
@@ -36,6 +39,7 @@ public class JBoxApplication implements Runnable {
         try {
             coreLoader.start();
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             System.out.println(e.getMessage());
         }
 
@@ -45,8 +49,9 @@ public class JBoxApplication implements Runnable {
     public static void main(String[] args) {
         AppComponent component = DaggerAppComponent.create();
         component.getLogbackConfig().configureLogging();
-        CommandComponent serviceComponent = DaggerCommandComponent.create();
-        int exitCode = new CommandLine(component.getApp(), new DaggerFactory(serviceComponent)).execute(args);
+        var app = component.getApp();
+        app.run();
+        int exitCode = new CommandLine(component.getApp(), new DaggerFactory(component)).execute(args);
         System.exit(exitCode);
     }
 

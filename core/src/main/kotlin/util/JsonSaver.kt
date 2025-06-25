@@ -6,7 +6,6 @@ import java.io.File
 
 
 class JsonSaver {
-
     fun saveConfig(config: Map<String, Any>, filePath: String): File {
         require(filePath.endsWith(".json")) { "Config filename must end with .json" }
 

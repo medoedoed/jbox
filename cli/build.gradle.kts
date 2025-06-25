@@ -6,7 +6,7 @@ plugins {
 }
 
 application {
-    mainClass.set("JBoxApplication")
+    mainClass.set("cli.JBoxApplication")
 }
 
 graalvmNative {
@@ -14,11 +14,12 @@ graalvmNative {
         named("main") {
             resources.autodetect()
             imageName.set("jbox")
-            mainClass.set("JBoxApplication")
+            mainClass.set("cli.JBoxApplication")
             buildArgs.add("--no-fallback")
             buildArgs.add("--initialize-at-build-time=kotlin.DeprecationLevel")
             buildArgs.add("--initialize-at-build-time=org.slf4j")
             buildArgs.add("--initialize-at-build-time=ch.qos.logback")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer")
 //            val graalConfigPath = projectDir.resolve("src/main/resources/graal_config.json").absolutePath
 //            buildArgs.add("-H:ReflectionConfigurationFiles=$graalConfigPath")
 

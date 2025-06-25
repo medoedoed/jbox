@@ -1,12 +1,12 @@
 package cli.di;
 
-import cli.command.ping.PingCommand;
+import cli.command.PingCommand;
 import picocli.CommandLine;
 
 public class DaggerFactory implements CommandLine.IFactory {
-    private final CommandComponent component;
+    private final AppComponent component;
 
-    public DaggerFactory(CommandComponent component) {
+    public DaggerFactory(AppComponent component) {
         this.component = component;
     }
 
@@ -15,7 +15,6 @@ public class DaggerFactory implements CommandLine.IFactory {
         if (cls.equals(PingCommand.class)) {
             return cls.cast(component.getPingCommand());
         }
-
         return cls.getDeclaredConstructor().newInstance();
     }
 }

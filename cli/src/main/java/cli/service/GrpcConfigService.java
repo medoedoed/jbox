@@ -1,8 +1,6 @@
 package cli.service;
 
-import core.grpc.ConfigList;
-import core.grpc.ConnectionConfigServiceGrpc;
-import core.grpc.Empty;
+import core.grpc.*;
 
 import javax.inject.Inject;
 
@@ -15,7 +13,11 @@ public class GrpcConfigService
         this.stub = stub;
     }
 
-    public ConfigList listConfigs(Empty request) {
-        return ConfigList.newBuilder().build();
+    public ConfigList listConfigs() {
+        return stub.listConfigs(Empty.getDefaultInstance());
+    }
+
+    public ConfigResponse putConfigJson(String name, String jsonPath) {
+        return stub.addConfigFromJson(ConfigJsonInput.newBuilder().setName(name).setJsonPath(jsonPath).build());
     }
 }

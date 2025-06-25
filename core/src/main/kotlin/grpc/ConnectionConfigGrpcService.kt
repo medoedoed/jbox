@@ -1,15 +1,14 @@
-package core.service
+package core.grpc
 
 import config.CoreSettings
 import core.database.repository.ConnectionConfigRepository
-import core.grpc.*
 import core.util.JsonSaver
 import core.util.UriParser
 import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
-class ConnectionConfigService(
+class ConnectionConfigGrpcService(
     private val repository: ConnectionConfigRepository,
     private val settings: CoreSettings,
     private val uriParser: UriParser,
@@ -51,6 +50,17 @@ class ConnectionConfigService(
         jsonSaver.saveConfig(parsedJson, filePath)
         val id = repository.add(name, Path(filePath).absolutePathString())
 
+        return ConfigResponse.newBuilder().setId(id).build()
+    }
+
+    override suspend fun addConfigFromJson(request: ConfigJsonInput): ConfigResponse {
+        val jsonPath = request.jsonPath
+        val name = request.name
+
+        val sourceFile = File(jsonPath)
+        require(sourceFile.exists() && sourceFile.isFile) { "Config file does not exist: $sourceFile" }
+
+        val id = repository.add(name, sourceFile.absolutePath)
         return ConfigResponse.newBuilder().setId(id).build()
     }
 

@@ -10,8 +10,8 @@ import org.koin.dsl.module
 import config.provideAppConfig
 import core.CoreServer
 import core.configuration.configureLogging
-import core.service.ConnectionConfigService
-import core.service.PingService
+import core.grpc.ConnectionConfigGrpcService
+import core.grpc.PingService
 import core.util.JsonSaver
 import core.util.UriParser
 
@@ -27,7 +27,7 @@ val appModule = module {
     single { ConnectionConfigDao() }
     single { ConnectionConfigRepository(get()) }
     single { CoreServer(get(), get(), get(), get()) }
-    single { ConnectionConfigService(get(), get(), get(), get()) }
+    single { ConnectionConfigGrpcService(get(), get(), get(), get()) }
     single { PingService() }
     single { UriParser(get()) }
     single { JsonSaver() }

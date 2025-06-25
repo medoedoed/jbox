@@ -3,8 +3,8 @@ package core
 import config.CoreSettings
 import config.data.AppConfig
 import core.database.repository.ConnectionConfigRepository
-import core.service.ConnectionConfigService
-import core.service.PingService
+import core.grpc.ConnectionConfigGrpcService
+import core.grpc.PingService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.Server
 import io.grpc.ServerBuilder
@@ -14,14 +14,14 @@ class CoreServer(
     repository: ConnectionConfigRepository,
     config: AppConfig,
     settings: CoreSettings,
-    connectionConfigService: ConnectionConfigService
+    connectionConfigGrpcService: ConnectionConfigGrpcService
 ) {
     private val logger = KotlinLogging.logger {}
     private val port = config.grpc.port
 
     private val server: Server = ServerBuilder
         .forPort(port)
-        .addService(connectionConfigService)
+        .addService(connectionConfigGrpcService)
         .addService(PingService())
         .addService(ProtoReflectionService.newInstance()) // temp for testing via grpcurl
         .build()
