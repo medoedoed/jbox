@@ -1,6 +1,4 @@
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
+import java.io.*
 
 plugins {
     id("java")
@@ -15,52 +13,22 @@ repositories {
 
 dependencies {}
 
-val jboxHomeBin = File(System.getProperty("user.home"), ".jbox/bin")
-val os = if (System.getProperty("os.name").contains("win")) "windows" else "linux"
+val jBoxHomeBin = File(System.getProperty("user.home"), ".jbox/bin")
+jBoxHomeBin.mkdirs()
+val os = if (System.getProperty("os.name").lowercase().contains("win")) "windows" else "linux"
 
-val arch = when {
-    System.getProperty("os.arch").contains("64") -> "amd64"
-    System.getProperty("os.arch").contains("aarch64") -> "arm64"
-    else -> throw GradleException("Unsupported architecture")
-}
-
-val singBoxVersion = "1.11.11"
-val singBoxUrl = "https://github.com/SagerNet/sing-box/releases/download/v$singBoxVersion/sing-box-$singBoxVersion-$os-$arch.tar.gz"
-
-val singBoxPath = jboxHomeBin.resolve("sing-box")
-val singBoxTar = jboxHomeBin.resolve("sing-box.tar.gz")
-
-tasks.register("downloadSingBox") {
-    outputs.file(singBoxPath)
+tasks.register<Copy>("installSingBox") {
+    from(file("bin/$os"))
+    into(jBoxHomeBin)
     doLast {
-        if (!jboxHomeBin.exists()) jboxHomeBin.mkdirs()
-        if (!singBoxPath.exists()) {
-            println("Downloading sing-box from $singBoxUrl")
-            URL(singBoxUrl).openStream().use { input ->
-                Files.copy(input, singBoxTar.toPath(), StandardCopyOption.REPLACE_EXISTING)
-            }
-            println("Extracting...")
-            exec {
-                workingDir = jboxHomeBin
-                commandLine("tar", "-xzf", singBoxTar.name)
-            }
-
-            val extracted = jboxHomeBin.listFiles()?.firstOrNull { it.name.startsWith("sing-box") && it.canExecute() }
-                ?: throw GradleException("sing-box binary not found after extraction")
-            extracted.renameTo(singBoxPath)
-            singBoxPath.setExecutable(true)
-            singBoxTar.delete()
-        } else {
-            println("sing-box already exists at $singBoxPath")
-        }
+        val binary = if (os == "windows") File(jBoxHomeBin, "sing-box.exe") else File(jBoxHomeBin, "sing-box")
+        binary.setExecutable(true)
+        println("sing-box installed to ${binary.absolutePath}")
     }
 }
 
+
 tasks.named("build") {
-    dependsOn(":downloadSingBox", ":core:nativeCompile", ":cli:nativeCompile")
+    dependsOn("installSingBox")
+     dependsOn(":core:nativeCompile", ":cli:nativeCompile") // закомментируй, если этих задач ещё нет
 }
-
-tasks.test {
-    useJUnitPlatform()
-}
-

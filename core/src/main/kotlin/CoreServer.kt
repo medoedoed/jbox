@@ -1,31 +1,38 @@
 package core
 
-import core.data.CoreConfig
-import core.db.repository.ConfigRepository
-import core.service.ConfigService
+import config.CoreSettings
+import config.data.AppConfig
+import core.database.repository.ConnectionConfigRepository
+import core.grpc.ConnectionConfigGrpcService
+import core.grpc.PingService
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.Server
 import io.grpc.ServerBuilder
 import io.grpc.protobuf.services.ProtoReflectionService
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class CoreServer() : KoinComponent {
-    private val config: CoreConfig by inject()
-    private val repository: ConfigRepository by inject()
+class CoreServer(
+    repository: ConnectionConfigRepository,
+    config: AppConfig,
+    settings: CoreSettings,
+    connectionConfigGrpcService: ConnectionConfigGrpcService
+) {
+    private val logger = KotlinLogging.logger {}
     private val port = config.grpc.port
 
     private val server: Server = ServerBuilder
         .forPort(port)
-        .addService(ConfigService(repository))
-        .addService(ProtoReflectionService.newInstance())
+        .addService(connectionConfigGrpcService)
+        .addService(PingService())
+        .addService(ProtoReflectionService.newInstance()) // temp for testing via grpcurl
         .build()
 
     fun start() {
         server.start()
-        println("gRPC is working on port $port")
+        logger.info { "Server started, listening on $port" }
+
         Runtime.getRuntime().addShutdownHook(Thread {
-            println("server shutting down")
-            this@CoreServer.stop()
+            logger.info { "Shutting down gracefully" }
+            stop()
         })
     }
 

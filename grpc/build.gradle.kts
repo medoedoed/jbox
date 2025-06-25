@@ -1,7 +1,6 @@
 plugins {
-    id("java")
-    id("com.google.protobuf") version "0.9.5"
     id("org.jetbrains.kotlin.jvm") version "2.2.0-RC"
+    id("com.google.protobuf") version "0.9.5"
 }
 
 group = "ru.medo"

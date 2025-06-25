@@ -1,6 +1,7 @@
 package core
 
 import core.di.appModule
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 
 fun main() {
@@ -8,7 +9,9 @@ fun main() {
         modules(appModule)
     }
 
-    val server = CoreServer()
+    val koin = GlobalContext.get()
+    val server: CoreServer = koin.get()
+
     server.start()
     server.blockUntilShutdown()
 }

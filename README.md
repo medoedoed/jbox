@@ -19,12 +19,17 @@ JBox is a native command-line wrapper for [sing-box](https://github.com/SagerNet
 | Native Compilation   | [GraalVM Native Image](https://www.graalvm.org)                |
 | Database             | SQLite via [Exposed ORM](https://github.com/JetBrains/Exposed) |
 | gRPC                 | Java gRPC + Kotlin Stubs                                       |
-| Dependency Injection | Koin                                                           |
+| Dependency Injection | Koin (Kotlin), Guice (Java)                                    |
 | Configuration        | Typesafe Config                                                |
 
 
 ## Build from source
 
-```angular2html
-sudo ./gradlew build
+Requirements:
+- GraalVM with `native-image` installed (Java 17+)
+- `JAVA_HOME` set to GraalVM
+- On Linux: `build-essential`, `zlib1g-dev`, `libffi-dev` installed
+
+```shell
+./gradlew build
 ```

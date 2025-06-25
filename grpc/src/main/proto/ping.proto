@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_package = "core.ping";
+option java_multiple_files = true;
+
+package core.ping;
+
+service PingService {
+  rpc Ping (Empty) returns (Pong);
+}
+
+message Empty {}
+
+message Pong {
+  string answer = 1;
+}
